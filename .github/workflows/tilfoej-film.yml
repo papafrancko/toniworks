@@ -1,0 +1,163 @@
+# Tilføj en film til toniworks.dk uden en udvikler:
+# GitHub → fanen Actions → "Tilføj film" → "Run workflow" → udfyld felterne.
+#
+# Henter masterfilen, tjekker den, koder hele filmen (scripts/add-film.mjs →
+# scripts/encode-media.mjs), sætter den sidst i src/content/film.yaml, tjekker
+# at sitet kan bygges, og gemmer ændringen på main. Vercel bygger derefter
+# sitet af sig selv. Går noget galt, gemmes intet, og sitet er uændret.
+name: Tilføj film
+run-name: "Tilføj film: ${{ inputs.titel }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      link:
+        description: "Link til masterfilen: et Dropbox-link (Del → Kopiér link) eller et direkte download-link. Filmen skal være 2048×1340."
+        required: true
+        type: string
+      titel:
+        description: "Titel, som den skal stå på sitet (fx løb). Adressen toniworks.dk/film/… laves ud fra titlen."
+        required: true
+        type: string
+      kunde:
+        description: "Kunden i “Produceret for … af …”"
+        required: true
+        default: SALTY
+        type: string
+
+permissions:
+  contents: write
+
+# Én ændring ad gangen: en ny kørsel venter, til den forrige er færdig. queue: max
+# holder alle ventende kørsler i køen (ellers afbryder en tredje den, der venter).
+concurrency:
+  group: indhold
+  cancel-in-progress: false
+  queue: max
+
+jobs:
+  tilfoej:
+    name: Tilføj film
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      # Fastlåst ffmpeg med libx264, libsvtav1 og aac (BtbN FFmpeg-Builds, 9.0-serien).
+      # Månedens sidste build bliver liggende i ca. to år; opdatér URL og SHA256 samtidig.
+      FFMPEG_URL: https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-08-31-13-27/ffmpeg-n9.0.1-11-ge47273f4d9-linux64-gpl-9.0.tar.xz
+      FFMPEG_SHA256: 182c1b509720e939bb47bfb47dc29cc0c298640401128e3dce8627d10707eb5a
+      FFMPEG_FALLBACK_ASSET: ffmpeg-n9.0-latest-linux64-gpl-9.0.tar.xz
+    steps:
+      - name: Tjek at der køres fra main
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::Kør 'Tilføj film' fra main: vælg 'Branch: main' under 'Run workflow'."
+          exit 1
+
+      - name: Hent sitet
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # main som den ser ud nu, ikke da kørslen blev startet: en kørsel, der har
+          # ventet i køen, bygger videre på den forrige.
+          ref: main
+          # Tokenet gemmes ikke i git: npm-pakkerne og ffmpeg kan ikke læse det.
+          # Kun "Gem på main" får det.
+          persist-credentials: false
+
+      - name: Installér Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Installér pakker
+        run: npm ci --no-audit --no-fund
+
+      - name: Installér ffmpeg
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          dir="$RUNNER_TEMP/ffmpeg"
+          archive="$RUNNER_TEMP/ffmpeg.tar.xz"
+          mkdir -p "$dir"
+          if curl -fsSL --retry 3 -o "$archive" "$FFMPEG_URL"; then
+            echo "$FFMPEG_SHA256  $archive" | sha256sum --check --strict -
+          else
+            echo "::warning::Den fastlåste ffmpeg kunne ikke hentes; bruger den nyeste 9.0-build fra BtbN. Opdatér FFMPEG_URL og FFMPEG_SHA256 i .github/workflows/tilfoej-film.yml."
+            release="$(curl -fsSL --retry 3 -H "Authorization: Bearer $GH_TOKEN" https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/tags/latest)"
+            url="$(jq -r --arg name "$FFMPEG_FALLBACK_ASSET" '.assets[] | select(.name == $name) | .browser_download_url' <<<"$release")"
+            digest="$(jq -r --arg name "$FFMPEG_FALLBACK_ASSET" '.assets[] | select(.name == $name) | .digest' <<<"$release")"
+            if [[ -z "$url" || "$digest" != sha256:* ]]; then
+              echo "::error::Fandt ikke $FFMPEG_FALLBACK_ASSET med checksum hos BtbN."
+              exit 1
+            fi
+            curl -fsSL --retry 3 -o "$archive" "$url"
+            echo "${digest#sha256:}  $archive" | sha256sum --check --strict -
+          fi
+          tar -xJf "$archive" -C "$dir" --strip-components=1
+          rm "$archive"
+          echo "FFMPEG=$dir/bin/ffmpeg" >> "$GITHUB_ENV"
+          echo "FFPROBE=$dir/bin/ffprobe" >> "$GITHUB_ENV"
+
+      - name: Tjek ffmpeg (libx264, libsvtav1, aac)
+        run: node scripts/encode-media.mjs --selftest
+
+      - name: Hent, tjek og kod filmen
+        id: film
+        env:
+          LINK: ${{ inputs.link }}
+          TITEL: ${{ inputs.titel }}
+          KUNDE: ${{ inputs.kunde }}
+        run: node scripts/add-film.mjs --link "$LINK" --titel "$TITEL" --kunde "$KUNDE" --summary-file "$RUNNER_TEMP/opsummering.md"
+
+      - name: Tjek at sitet kan bygges
+        run: |
+          npx astro check
+          npx astro build
+
+      - name: Gem på main
+        env:
+          TITEL: ${{ steps.film.outputs.titel }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # Tokenet kun til git her (checkout gemmer det ikke).
+          auth="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          git_auth() { git -c "http.$GITHUB_SERVER_URL/.extraheader=$auth" "$@"; }
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- src/content/film.yaml src/data/media-manifest.json src/assets/films
+          git commit --quiet -m "Tilføj film: $TITEL"
+          if ! git_auth push --quiet origin HEAD:main; then
+            echo "main er ændret imens. Henter ændringerne og prøver igen."
+            git_auth fetch --quiet origin main
+            if ! git rebase origin/main; then
+              git rebase --abort || true
+              echo "::error::Nogen har ændret sitet samtidig, så filmen kunne ikke gemmes. Kør 'Tilføj film' igen."
+              exit 1
+            fi
+            git_auth push --quiet origin HEAD:main
+          fi
+
+      - name: Opsummering
+        run: cat "$RUNNER_TEMP/opsummering.md" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Forklar fejlen
+        if: failure() && steps.film.outcome != 'failure'
+        run: |
+          {
+            echo "## Filmen blev ikke tilføjet"
+            echo
+            echo "Noget gik galt i trinnet med det røde kryds herover. Intet er ændret på sitet."
+            echo
+            echo "Prøv at køre 'Tilføj film' igen. Sker det igen, så send linket til denne side til udvikleren."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Forklar afbrydelsen
+        if: cancelled()
+        run: |
+          {
+            echo "## Kørslen blev afbrudt"
+            echo
+            echo "Intet er ændret på sitet. Kør 'Tilføj film' igen."
+          } >> "$GITHUB_STEP_SUMMARY"

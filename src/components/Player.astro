@@ -1,0 +1,316 @@
+---
+/**
+ * The film page player: the whole film, full bleed, with custom text
+ * controls lying on the film (no icons).
+ *
+ * Layers, bottom to top: navy box -> poster <picture> (frame 0 of the film)
+ * -> <video> (shown once it has a frame) -> controls. Behaviour is in
+ * src/scripts/player.ts.
+ *
+ * Without JavaScript the custom controls stay hidden and the browser's own
+ * controls (the `controls` attribute, without download, playback speed and
+ * picture-in-picture, which ours don't have either) let the viewer turn the
+ * sound on.
+ * player.ts removes the attribute as it takes over; until then the video is
+ * transparent (it shows once player.ts sees a frame), so the native controls
+ * never flash.
+ */
+import { Picture } from 'astro:assets';
+import type { Film } from '../data/films';
+
+interface Props {
+  film: Film;
+}
+const { film } = Astro.props;
+const { full } = film;
+
+const clock = (seconds: number) =>
+  `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+const total = clock(film.durationSeconds);
+
+// Small screens get the 1280 files. AV1 first, H.264 as the fallback.
+const small = '(max-width: 1023px)';
+const sources = [
+  { src: full.av1Small, type: full.types.av1Small, media: small },
+  { src: full.h264Small, type: full.types.h264Small, media: small },
+  { src: full.av1, type: full.types.av1 },
+  { src: full.h264, type: full.types.h264 },
+].filter((source) => source.src);
+
+// Rendered width of the box: full bleed, capped by the viewport height (see .player).
+const posterSizes =
+  '(max-width: 767px) min(100vw, calc((100vh - 84px) * 1.5284)), min(100vw, calc((100vh - 136px) * 1.5284))';
+---
+
+<div
+  class="player"
+  data-player
+  data-state="playing"
+  data-duration={film.durationSeconds}
+  data-scrim={film.controlsScrim ? '' : undefined}
+>
+  {
+    full.poster && (
+      <Picture
+        class="poster"
+        src={full.poster}
+        alt=""
+        formats={['avif', 'webp']}
+        fallbackFormat="jpg"
+        widths={[640, 960, 1280, 1600, 2048]}
+        sizes={posterSizes}
+        quality={80}
+        loading="eager"
+        fetchpriority="high"
+      />
+    )
+  }
+  <video
+    class="video"
+    controls
+    controlslist="nodownload noplaybackrate"
+    disablepictureinpicture
+    muted
+    autoplay
+    playsinline
+    preload="auto"
+    aria-label={film.title}
+  >
+    {sources.map(({ src, type, media }) => <source src={src} type={type} media={media} />)}
+  </video>
+  {/* Reduced motion: no autoplay. Runs before the video can start. */}
+  <script is:inline>
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const video = document.currentScript.previousElementSibling;
+      video.removeAttribute('autoplay');
+      video.autoplay = false;
+      video.preload = 'metadata';
+      video.parentElement.dataset.state = 'paused';
+    }
+  </script>
+  {/* No JavaScript: the video shows at once, with the browser's own controls instead of ours */}
+  <noscript><style is:inline>[data-player] .video { opacity: 1 } [data-player] [data-controls] { display: none }</style></noscript>
+
+  <div class="controls" data-controls>
+    <div
+      class="progress"
+      data-progress
+      role="slider"
+      tabindex="0"
+      aria-label="Tidslinje"
+      aria-valuemin="0"
+      aria-valuemax={film.durationSeconds}
+      aria-valuenow="0"
+      aria-valuetext={`0:00 af ${total}`}
+    >
+      <div class="fill" data-fill></div>
+    </div>
+    <div class="row">
+      <div class="left">
+        <button class="toggle" type="button" aria-label="Pause" data-toggle>
+          <span class="glyph" aria-hidden="true"></span>
+        </button>
+        <span class="time" data-time>0:00 / {total}</span>
+      </div>
+      <button class="sound" type="button" aria-label="Slå lyd til" data-sound>lyd til</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { initPlayer } from '../scripts/player';
+
+  document.querySelectorAll<HTMLElement>('[data-player]').forEach(initPlayer);
+</script>
+
+<style>
+  .player {
+    /* Gap under the nav; the box is capped so the whole film fits below it */
+    --player-gap: 72px;
+    --player-top: calc(var(--nav-h) + var(--player-gap));
+    /* Moves the 44px hit areas down, clear of the progress line's own */
+    --hit-shift: 4px;
+
+    position: relative;
+    width: min(100%, max(180px, 100vh - var(--player-top)) * 2048 / 1340);
+    width: min(100%, max(180px, 100svh - var(--player-top)) * 2048 / 1340);
+    margin: var(--player-gap) auto 0;
+    aspect-ratio: 2048 / 1340;
+    background: var(--navy);
+    touch-action: manipulation;
+  }
+
+  .player[data-idle] {
+    cursor: none;
+  }
+
+  .player :global(.poster),
+  .video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .video {
+    opacity: 0;
+  }
+
+  .player[data-frame] .video {
+    opacity: 1;
+  }
+
+  .controls {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 0 var(--margin) 28px;
+    font-size: var(--type-label);
+    letter-spacing: var(--type-label-ls-meta);
+    transition: opacity var(--fade-ui) ease;
+  }
+
+  /* Flat band for films whose bottom is too bright for white text */
+  .player[data-scrim] .controls {
+    padding-top: 16px;
+    background: var(--scrim);
+  }
+
+  .player[data-idle] .controls {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .player[data-failed] .controls {
+    display: none;
+  }
+
+  /* Progress: 2px line, no knob. The slider's hit area is ~20px tall. */
+  .progress {
+    position: relative;
+    height: 2px;
+    background: var(--track);
+    cursor: pointer;
+    touch-action: pan-y;
+  }
+
+  .progress::before {
+    content: '';
+    position: absolute;
+    top: -12px;
+    right: 0;
+    bottom: -6px;
+    left: 0;
+  }
+
+  .fill {
+    height: 100%;
+    background: var(--ink);
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .left {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+
+  .time,
+  .sound {
+    white-space: nowrap;
+  }
+
+  .toggle,
+  .sound {
+    position: relative;
+    display: block;
+  }
+
+  /* Invisible hit areas of at least 44x44; the visuals stay as drawn */
+  .toggle::after,
+  .sound::after {
+    content: '';
+    position: absolute;
+    top: calc(50% + var(--hit-shift));
+    left: 50%;
+    width: max(100% + 24px, 44px);
+    height: 44px;
+    transform: translate(-50%, -50%);
+  }
+
+  /* Pause: two 3px bars. Play: a triangle of the same height (clip-path). */
+  .glyph {
+    position: relative;
+    display: block;
+    width: 10px;
+    height: 14px;
+  }
+
+  .glyph::before,
+  .glyph::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--ink);
+  }
+
+  .glyph::before {
+    left: 0;
+  }
+
+  .glyph::after {
+    right: 0;
+  }
+
+  .player:not([data-state='playing']) .glyph::before {
+    width: 12px;
+    clip-path: polygon(0 0, 100% 50%, 0 100%);
+  }
+
+  .player:not([data-state='playing']) .glyph::after {
+    display: none;
+  }
+
+  @media (max-width: 767px) {
+    .player {
+      --player-gap: 40px;
+      --hit-shift: 11px;
+    }
+
+    .controls {
+      gap: 10px;
+      padding-bottom: 14px;
+    }
+
+    .player[data-scrim] .controls {
+      padding-top: 10px;
+    }
+
+    .left {
+      gap: 12px;
+    }
+
+    .glyph {
+      width: 9px;
+      height: 12px;
+    }
+
+    .player:not([data-state='playing']) .glyph::before {
+      width: 10px;
+    }
+  }
+</style>

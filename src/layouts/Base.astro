@@ -1,0 +1,104 @@
+---
+import '@fontsource-variable/archivo/wdth-italic.css';
+import '@fontsource/instrument-sans/latin-400.css';
+import '@fontsource/instrument-sans/latin-500.css';
+import '../styles/tokens.css';
+import '../styles/global.css';
+import archivoItalicLatin from '@fontsource-variable/archivo/files/archivo-latin-wdth-italic.woff2?url';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+import { site } from '../data/site';
+
+interface Props {
+  /** Page name; rendered as "<title> · TONI Works". Omit on the homepage. */
+  title?: string;
+  description: string;
+  /** Absolute or root-relative share image URL, 1200x630. */
+  ogImage?: string;
+  /** Share image alt text. Default: "<title> — TONI Works" for a page's own image, "TONI Works" for the default one. */
+  ogImageAlt?: string;
+  activeNav?: 'work' | 'about' | null;
+  /** Which page's bottom air goes before the footer. */
+  spacer: 'home' | 'film' | 'about' | '404';
+}
+
+const {
+  title,
+  description,
+  ogImage = '/og-default.png',
+  ogImageAlt = Astro.props.ogImage && title ? `${title} — ${site.name}` : site.name,
+  activeNav = null,
+  spacer,
+} = Astro.props;
+
+const pageTitle = title ? `${title} · ${site.name}` : site.name;
+const siteUrl = Astro.site ?? new URL(site.url);
+
+// build.format 'file' gives '/about.html' at build time; canonical URLs have
+// no extension and no trailing slash (except the root).
+const path = Astro.url.pathname.replace(/(\/index)?\.html$/, '').replace(/\/+$/, '') || '/';
+const canonical = new URL(path, siteUrl).href;
+const shareImage = new URL(ogImage, siteUrl).href;
+const isNotFound = spacer === '404';
+---
+
+<!doctype html>
+<html lang="da">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    {isNotFound ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
+    <meta name="theme-color" content="#0A0D14" />
+
+    <link rel="preload" href={archivoItalicLatin} as="font" type="font/woff2" crossorigin />
+
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:locale" content="da_DK" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    {!isNotFound && <meta property="og:url" content={canonical} />}
+    <meta property="og:image" content={shareImage} />
+    {/* Default and per-film share images are both 1200x630 */}
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={ogImageAlt} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={shareImage} />
+    <meta name="twitter:image:alt" content={ogImageAlt} />
+
+    {/* Page-specific head tags, e.g. a poster preload */}
+    <slot name="head" />
+  </head>
+  <body>
+    <Nav active={activeNav} />
+    <main data-end={spacer}>
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>
+
+<style>
+  /* Bottom air before the footer (desktop / mobile, tablet uses desktop) */
+  main[data-end='home'],
+  main[data-end='about'] {
+    padding-bottom: var(--pad-bottom);
+  }
+
+  main[data-end='film'] {
+    padding-bottom: var(--pad-bottom-film);
+  }
+
+  main[data-end='404'] {
+    padding-bottom: var(--pad-bottom-404);
+  }
+</style>

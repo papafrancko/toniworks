@@ -1,0 +1,71 @@
+# ------------------------------------------------------------------
+#  FILMENE PÅ TONIWORKS.DK
+# ------------------------------------------------------------------
+#
+#  Her står alle film på siden. Rækkefølgen her er rækkefølgen på
+#  forsiden, og "næste film" går samme vej rundt (efter den sidste
+#  kommer den første igen).
+#
+#  Hver film er en lille blok, der starter med "- slug:".
+#  Linjer, der starter med #, er forklaringer. De vises ikke på siden.
+#
+#  SÅDAN GØR I
+#
+#  Ny film ......... Brug formularen "Tilføj film" under fanen Actions
+#                    på GitHub. Den lægger videoen på plads og skriver
+#                    filmen nederst i denne fil (sidst på forsiden).
+#  Flyt en film .... Flyt hele blokken (alle linjerne fra "- slug:" til
+#                    den tomme linje, også "skjult: true", hvis den står
+#                    der) op eller ned.
+#  Ny titel ........ Ret teksten efter "titel:".
+#  Skjul en film ... Skriv linjen "skjult: true" under "kunde:", rykket
+#                    lige så langt ind. Filmen bliver liggende her, men
+#                    vises ikke på siden. Slet linjen igen for at vise den.
+#  Fjern en film ... Brug formularen "Fjern film" under fanen Actions.
+#
+#  FELTERNE
+#
+#  slug    Filmens adresse: toniworks.dk/film/<slug>. Kun små bogstaver
+#          a-z, tal og bindestreg (ikke æ, ø, å eller mellemrum).
+#          Ret den ikke, når filmen er online: så holder links til
+#          filmen op med at virke, og videofilerne kan ikke findes.
+#  titel   Titlen, som den står på siden. Æ, ø og å er fine.
+#  kunde   Kunden, fx SALTY. Står i "Produceret for SALTY af ..." og
+#          med små bogstaver ved filmen: "salty · 16 sek.".
+#  skjult  Kan udelades. "skjult: true" skjuler filmen.
+#
+#  Filmens længde ("16 sek.") skal ikke skrives: den måles automatisk.
+#
+#  Hold indrykningen: "titel", "kunde" og "skjult" står lige under
+#  "slug" med to mellemrum foran. Står der et kolon (:) i en titel,
+#  så sæt titlen i anførselstegn, fx  titel: "løb: del 2"
+#
+#  Når I gemmer (Commit changes), bygges siden igen og er online efter
+#  et par minutter. Er der en fejl i filen, viser GitHub et rødt kryds
+#  med en forklaring, og den nuværende version af siden bliver ved med
+#  at være online, til fejlen er rettet.
+# ------------------------------------------------------------------
+
+- slug: loeb      # adressen: toniworks.dk/film/loeb
+  titel: løb
+  kunde: SALTY
+
+- slug: sauna     # adressen: toniworks.dk/film/sauna
+  titel: sauna
+  kunde: SALTY
+
+- slug: morgen    # adressen: toniworks.dk/film/morgen
+  titel: morgen
+  kunde: SALTY
+
+- slug: slik      # adressen: toniworks.dk/film/slik
+  titel: slik
+  kunde: SALTY
+
+- slug: vaagne    # adressen: toniworks.dk/film/vaagne
+  titel: vågne
+  kunde: SALTY
+
+- slug: pakke     # adressen: toniworks.dk/film/pakke
+  titel: pakke
+  kunde: SALTY

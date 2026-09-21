@@ -1,0 +1,225 @@
+---
+import { Picture } from 'astro:assets';
+import { filmMeta, type Film } from '../data/films';
+
+interface Props {
+  film: Film;
+  /** First grid row: poster loads eagerly at high priority. */
+  eager?: boolean;
+}
+
+const { film, eager = false } = Astro.props;
+const { av1Small, h264Small, poster, types } = film.full;
+const hasVideo = Boolean(av1Small || h264Small);
+const titleId = `film-${film.slug}-title`;
+const metaId = `film-${film.slug}-meta`;
+
+// Rendered column width: one column at mobile, two columns at tablet and desktop.
+const sizes =
+  '(max-width: 767px) calc(100vw - 40px), (max-width: 1199px) calc(50vw - 56px), calc(50vw - 84px)';
+
+// Sources carry a media condition so reduced-motion visitors never download
+// the film (the previews script reloads them if the preference changes).
+// preload="none": the previews script lets hover mode fetch the start of the
+// films in view once the page has loaded, so they don't delay fonts and posters.
+const motionOk = '(prefers-reduced-motion: no-preference)';
+---
+
+<article class="film-card" data-film-card data-title={film.title}>
+  <a class="link" href={`/film/${film.slug}`} aria-labelledby={`${titleId} ${metaId}`}>
+    <div class="media">
+      {
+        poster && (
+          <Picture
+            class="poster"
+            src={poster}
+            alt=""
+            formats={['avif', 'webp']}
+            fallbackFormat="jpg"
+            width={1280}
+            widths={[640, 960, 1280]}
+            sizes={sizes}
+            quality={80}
+            loading={eager ? 'eager' : 'lazy'}
+            fetchpriority={eager ? 'high' : 'auto'}
+          />
+        )
+      }
+      {
+        hasVideo && (
+          <video
+            class="video"
+            muted
+            loop
+            playsinline
+            preload="none"
+            tabindex="-1"
+            disablepictureinpicture
+            disableRemotePlayback
+            aria-hidden="true"
+          >
+            {av1Small && <source src={av1Small} type={types.av1Small} media={motionOk} />}
+            {h264Small && <source src={h264Small} type={types.h264Small} media={motionOk} />}
+          </video>
+        )
+      }
+    </div>
+    <div class="meta">
+      <h2 class="title display" id={titleId}>{film.title}</h2>
+      <span class="info" id={metaId}>{filmMeta(film)}</span>
+    </div>
+  </a>
+  {
+    hasVideo && (
+      <div class="controls">
+        {/* The label's strip: plain white text on the film, no scrim on the homepage */}
+        <div class="bar">
+          {/* Shown by the previews script; stays hidden without JS, under reduced motion and if the film can't load */}
+          <button type="button" class="sound" aria-label={`Slå lyd til for ${film.title}`} hidden>
+            lyd til
+          </button>
+        </div>
+      </div>
+    )
+  }
+</article>
+
+<script>
+  import '../scripts/previews';
+</script>
+
+<style>
+  .film-card {
+    position: relative;
+    min-width: 0;
+  }
+
+  .link {
+    display: block;
+  }
+
+  .media {
+    position: relative;
+    aspect-ratio: 2048 / 1340;
+    background: var(--navy);
+  }
+
+  .poster,
+  .video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* The whole film fades in over its poster (frame 0) once a frame is presented */
+  .video {
+    /* Whole pixels, never a row taller than the poster, so the poster stays the page's LCP element */
+    height: round(down, 100%, 1px);
+    opacity: 0;
+    transition: opacity var(--fade-preview) ease;
+  }
+
+  .is-previewing .video {
+    opacity: 1;
+  }
+
+  .meta {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    column-gap: 16px;
+    margin-top: 18px;
+  }
+
+  .title {
+    font-size: var(--type-film-grid);
+    line-height: var(--type-film-grid-lh);
+    /* A long one-word title breaks instead of running off a narrow phone */
+    overflow-wrap: anywhere;
+  }
+
+  .info {
+    flex-shrink: 0;
+    color: var(--ink-dim);
+    font-size: var(--type-meta);
+    letter-spacing: var(--type-label-ls-meta);
+    white-space: nowrap;
+  }
+
+  /*
+   * Same box as .media, laid over it, so the sound button sits on the film
+   * while staying outside the card link. Clicks elsewhere fall through to it.
+   */
+  .controls {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    aspect-ratio: 2048 / 1340;
+    pointer-events: none;
+  }
+
+  /*
+   * Full-width strip along the bottom of the film, just tall enough for the
+   * label and its insets (the padding places the label, inset like the film
+   * page's controls scaled to card size). Clicks pass through to the card
+   * link everywhere but on the button.
+   */
+  .bar {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    justify-content: flex-end;
+    padding: 14px 18px;
+  }
+
+  /* Styled like the film page's sound label */
+  .sound {
+    position: relative;
+    color: var(--ink);
+    font-size: var(--type-label);
+    letter-spacing: var(--type-label-ls-meta);
+    line-height: normal;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity var(--fade-ui) ease;
+  }
+
+  /* Invisible hit area of at least 44 x 44 that ends at the film's edges */
+  .sound::before {
+    content: '';
+    position: absolute;
+    inset: -15px -18px -14px;
+  }
+
+  .is-previewing .sound,
+  .sound:focus-visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  @media (max-width: 767px) {
+    .meta {
+      margin-top: 14px;
+    }
+
+    .bar {
+      padding: 10px 14px;
+    }
+
+    .sound::before {
+      inset: -19px -14px -10px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .video,
+    .bar {
+      display: none;
+    }
+  }
+</style>

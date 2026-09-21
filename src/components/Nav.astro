@@ -1,0 +1,83 @@
+---
+import Wordmark from './Wordmark.astro';
+
+interface Props {
+  active?: 'work' | 'about' | null;
+}
+const { active = null } = Astro.props;
+
+const links = [
+  { key: 'work', href: '/', label: 'work' },
+  { key: 'about', href: '/about', label: 'about' },
+] as const;
+---
+
+<header class="nav">
+  <a class="logo display" href="/" aria-label="TONI Works, forside"><Wordmark /></a>
+  <nav class="links" aria-label="Hovedmenu">
+    {
+      links.map((link) => (
+        <a
+          class="link"
+          href={link.href}
+          lang="en"
+          aria-current={active === link.key ? 'page' : undefined}
+        >
+          {link.label}
+        </a>
+      ))
+    }
+  </nav>
+</header>
+
+<style>
+  .nav {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: var(--nav-pad-top) var(--margin) 0;
+  }
+
+  /*
+   * The logo link keeps the line box of the mockup's Archivo 'TONI'
+   * (28px desktop / 22px mobile), so the nav is exactly --nav-h tall and the
+   * links align to the same baseline. The Wordmark sits on that baseline.
+   */
+  .logo {
+    display: block;
+    font-size: var(--type-logo);
+    line-height: var(--logo-box);
+  }
+
+  .logo :global(.wordmark) {
+    height: var(--logo-cap);
+    vertical-align: baseline;
+  }
+
+  .links {
+    display: flex;
+    gap: 28px;
+    font-size: var(--type-label);
+    letter-spacing: var(--type-label-ls);
+  }
+
+  .link {
+    color: var(--ink-dim);
+  }
+
+  .link[aria-current='page'] {
+    color: var(--ink);
+  }
+
+  @media (hover: hover) {
+    .link:not([aria-current='page']):hover {
+      color: var(--ink);
+    }
+  }
+
+  @media (max-width: 767px) {
+    .links {
+      gap: 20px;
+    }
+  }
+</style>

@@ -1,0 +1,108 @@
+---
+import type { ImageMetadata } from 'astro';
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import { site, texts } from '../data/site';
+
+const description = `${site.name} er ${site.founders}. Et produktionsselskab i ${site.city} med én kunde indtil videre.`;
+
+// Optional team photo (3:2). None has been delivered: drop one image into
+// src/assets/about/ and the page switches to the two-column layout. Without
+// it nothing is rendered for the photo, not even an empty frame.
+const photos = import.meta.glob<{ default: ImageMetadata }>(
+  '../assets/about/*.{jpg,jpeg,png,webp,avif}',
+  { eager: true },
+);
+const photo = Object.values(photos)[0]?.default;
+---
+
+<Base title="about" description={description} activeNav="about" spacer="about">
+  <div class:list={['about', { 'has-photo': !!photo }]}>
+    {/* Copy from src/content/tekster.yaml (about:). The first afsnit is placeholder copy: "pladsholder — afventer TONIs tekst" */}
+    <div class="text">
+      <h1 class="lead display">{texts.about.lead}</h1>
+      {texts.about.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+      {texts.about.closing && <p class="dim">{texts.about.closing}</p>}
+    </div>
+    {
+      photo && (
+        <Image
+          class="photo"
+          src={photo}
+          alt={site.founders}
+          widths={[390, 640, 960, 1280]}
+          sizes="(max-width: 767px) calc(100vw - 40px), calc(50vw - 84px)"
+        />
+      )
+    }
+  </div>
+</Base>
+
+<style>
+  .about {
+    margin-top: 160px;
+    padding: 0 var(--margin);
+  }
+
+  .text {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    max-width: 720px;
+  }
+
+  .text > * {
+    line-height: var(--type-body-lh);
+    text-wrap: pretty;
+  }
+
+  .text > .lead {
+    font-size: var(--type-lead);
+    line-height: var(--type-lead-lh);
+    letter-spacing: var(--type-lead-ls);
+  }
+
+  .dim {
+    color: var(--ink-dim);
+  }
+
+  /* With a photo: text and photo side by side, text measure 560 */
+  .has-photo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: var(--gutter);
+    align-items: start;
+  }
+
+  .has-photo .text {
+    max-width: 560px;
+  }
+
+  .photo {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 2048 / 1340;
+    object-fit: cover;
+  }
+
+  @media (max-width: 767px) {
+    .about {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      margin-top: 80px;
+    }
+
+    .text {
+      gap: 24px;
+    }
+
+    .has-photo .text {
+      max-width: none;
+    }
+
+    .photo {
+      margin-top: 8px;
+    }
+  }
+</style>

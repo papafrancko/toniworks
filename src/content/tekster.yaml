@@ -1,0 +1,63 @@
+# ------------------------------------------------------------------
+#  TEKSTERNE PÅ TONIWORKS.DK
+# ------------------------------------------------------------------
+#
+#  Ret teksterne her. Lad feltnavnene stå (det, der står før kolon,
+#  fx "email:"). Linjer, der starter med #, er forklaringer. De vises
+#  ikke på siden.
+#
+#  Lange tekster står på linjerne under ">-", rykket ind med mellemrum.
+#  I må bryde linjerne, hvor I vil: på siden bliver det ét afsnit.
+#  Kolon, anførselstegn og alle andre tegn er fine der.
+#
+#  Når I gemmer (Commit changes), bygges siden igen og er online efter
+#  et par minutter. Er der en fejl i filen, viser GitHub et rødt kryds
+#  med en forklaring, og den nuværende version af siden bliver ved med
+#  at være online, til fejlen er rettet.
+# ------------------------------------------------------------------
+
+about:
+  # Den store første tekst på about-siden.
+  indledning: >-
+    TONI Works er et produktionsselskab i København. Det er
+    Tobias Franck-Winther og Nicolas Kaiser.
+
+  # Afsnittene under indledningen. Hvert afsnit starter med "- >-".
+  # Nyt afsnit: kopiér et helt afsnit (fra "- >-" til og med sidste
+  # linje tekst), sæt det ind under, og ret teksten.
+  afsnit:
+    # pladsholder — afventer TONIs tekst
+    - >-
+      Vi arbejder med, at en pause ofte er sjovere end en pointe. Det
+      betyder længere indstillinger, færre klip og skuespillere, der får
+      lov at stå stille lidt for længe. Det ser seriøst ud, indtil man
+      opdager, at det ikke er det.
+
+  # Den sidste, grå linje. Fjern den ved at rette linjen til
+  #   sidste_linje: ''
+  # (slet >- og teksten under).
+  sidste_linje: >-
+    Vi har én kunde. Det er rigeligt indtil videre.
+
+kontakt:
+  # Mailadressen nederst på hver side.
+  email: hello@toniworks.dk
+  # Den grå linje under mailadressen.
+  tekst: >-
+    Skriv til os. Vi svarer, når kameraet er pakket ned.
+  # Navnet på Instagram, uden @. Linket laves automatisk.
+  instagram: toni__works
+  # Byen nederst på siden. Står også i sidens beskrivelse til Google.
+  by: København
+
+film:
+  # Navnene i linjen under hver film: "Produceret for SALTY af ...".
+  # Står også i beskrivelsen af about-siden til Google.
+  produceret_af: Tobias Franck-Winther og Nicolas Kaiser
+
+# Firmaoplysninger (e-handelsloven § 7). De vises nederst under ©,
+# når de er udfyldt. Lad dem stå som '' indtil da.
+firma:
+  navn: ''      # fx TONI Works ApS
+  adresse: ''   # fx Gadenavn 1, 2200 København N
+  cvr: ''       # 8 cifre, fx 12345678

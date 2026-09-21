@@ -1,0 +1,167 @@
+---
+import type { GetStaticPaths } from 'astro';
+import Base from '../../layouts/Base.astro';
+import Player from '../../components/Player.astro';
+import { films, filmMeta, nextFilm, type Film } from '../../data/films';
+import { site } from '../../data/site';
+
+export const getStaticPaths = (() =>
+  films.map((film) => ({ params: { slug: film.slug }, props: { film } }))) satisfies GetStaticPaths;
+
+interface Props {
+  film: Film;
+}
+const { film } = Astro.props;
+const next = nextFilm(film);
+
+const description = `${film.title}. ${film.durationSeconds} sekunder for ${film.client}, lavet af ${site.name} i ${site.city}.`;
+---
+
+<Base
+  title={film.title}
+  description={description}
+  ogImage={`/og/${film.slug}.png`}
+  activeNav={null}
+  spacer="film"
+>
+  <Player film={film} />
+
+  <div class="info">
+    <div class="heading">
+      <h1 class="title display">{film.title}</h1>
+      <p class="meta">{filmMeta(film)}</p>
+    </div>
+    <p class="credit">Produceret for {film.client} af {site.founders}</p>
+  </div>
+
+  {
+    next && (
+      <a class="next" href={`/film/${next.slug}`} data-astro-prefetch>
+        <span class="next-text">
+          <span class="next-label">næste film</span>
+          <span class="next-title display">{next.title}</span>
+        </span>
+        <span class="meta next-meta">{filmMeta(next)}</span>
+      </a>
+    )
+  }
+</Base>
+
+<style>
+  /* Title + meta left, credit line right; wraps when the row runs out (tablet) */
+  .info {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px 40px;
+    padding: 48px var(--margin) 0;
+  }
+
+  .heading {
+    display: flex;
+    align-items: baseline;
+    gap: 20px;
+  }
+
+  .title {
+    font-size: var(--type-film-page);
+    line-height: var(--type-film-page-lh);
+    letter-spacing: var(--type-film-page-ls);
+    /* A long one-word title breaks instead of running off a narrow phone */
+    overflow-wrap: anywhere;
+  }
+
+  .meta {
+    color: var(--ink-dim);
+    font-size: var(--type-label);
+    letter-spacing: var(--type-label-ls-meta);
+    white-space: nowrap;
+  }
+
+  .credit {
+    padding-bottom: 6px;
+    color: var(--ink-dim);
+    font-size: var(--type-produced);
+    line-height: var(--type-produced-lh);
+    letter-spacing: var(--type-produced-ls);
+  }
+
+  /* Næste film: the whole row is one link */
+  .next {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 40px;
+    margin: 128px var(--margin) 0;
+    padding-top: 40px;
+    border-top: 1px solid var(--line);
+  }
+
+  .next-text {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .next-label {
+    color: var(--ink-dim);
+    font-size: var(--type-micro);
+    font-weight: var(--type-micro-weight);
+    letter-spacing: var(--type-micro-ls);
+    text-transform: uppercase;
+  }
+
+  .next-title {
+    font-size: var(--type-next);
+    line-height: var(--type-next-lh);
+    letter-spacing: var(--type-next-ls);
+    overflow-wrap: anywhere;
+    transition: color var(--fade-ui) ease;
+  }
+
+  .next-meta {
+    padding-bottom: 10px;
+  }
+
+  @media (hover: hover) {
+    .next:hover .next-title {
+      color: var(--ink-dim);
+    }
+  }
+
+  @media (max-width: 767px) {
+    .info,
+    .heading {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+    }
+
+    .info {
+      padding-top: 28px;
+    }
+
+    .credit {
+      margin-top: 10px;
+      padding-bottom: 0;
+    }
+
+    .next {
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: flex-start;
+      gap: 10px;
+      margin-top: 72px;
+      padding-top: 24px;
+    }
+
+    .next-text {
+      gap: 10px;
+    }
+
+    .next-meta {
+      padding-bottom: 0;
+    }
+  }
+</style>

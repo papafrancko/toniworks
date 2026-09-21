@@ -1,0 +1,54 @@
+# Tjekker ved hver ændring (også rettelser direkte på GitHub), at sitet kan
+# bygges. Et rødt kryds betyder, at ændringen har en fejl; Vercel bliver så
+# ved med at vise den forrige version, til fejlen er rettet.
+name: Tjek bygning
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tjek-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tjek:
+    name: Tjek bygning
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Hent sitet
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Installér Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Installér pakker
+        run: npm ci --no-audit --no-fund
+
+      - name: Tjek koden (astro check)
+        run: npx astro check
+
+      - name: Byg sitet (astro build)
+        run: npx astro build
+
+      - name: Forklar fejlen
+        if: failure()
+        run: |
+          {
+            echo "## Sitet kan ikke bygges"
+            echo
+            echo "Den seneste ændring har en fejl, så sitet ikke kan bygges. Vercel viser fortsat den forrige version."
+            echo
+            echo "Åbn trinnet med det røde kryds: fejlbeskeden siger, hvilken fil og linje der er noget galt med"
+            echo "(typisk src/content/film.yaml eller src/content/tekster.yaml). Ret linjen på GitHub og gem;"
+            echo "så kører tjekket igen af sig selv."
+          } >> "$GITHUB_STEP_SUMMARY"

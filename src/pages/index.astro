@@ -1,0 +1,54 @@
+---
+import Base from '../layouts/Base.astro';
+import FilmCard from '../components/FilmCard.astro';
+import { films } from '../data/films';
+import { site } from '../data/site';
+
+const description = `Reklamefilm fra ${site.name}, et produktionsselskab i ${site.city}. Der sker ikke meget i dem. Det er meningen.`;
+---
+
+<Base description={description} activeNav="work" spacer="home">
+  <h1 class="visually-hidden">{site.name} — film</h1>
+  {
+    films.length > 0 ? (
+      <div class="grid">
+        {films.map((film, index) => (
+          <FilmCard film={film} eager={index < 2} />
+        ))}
+      </div>
+    ) : (
+      <p class="empty">Der kommer mere. Vi optager langsomt.</p>
+    )
+  }
+</Base>
+
+<style>
+  /* An odd count simply leaves the last cell empty */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--gutter);
+    row-gap: var(--gap-row);
+    margin-top: 96px;
+    padding: 0 var(--margin);
+  }
+
+  .empty {
+    margin-top: 96px;
+    padding: 0 var(--margin);
+    color: var(--ink-dim);
+    line-height: var(--type-body-lh);
+    text-wrap: pretty;
+  }
+
+  @media (max-width: 767px) {
+    .grid {
+      grid-template-columns: minmax(0, 1fr);
+      margin-top: 48px;
+    }
+
+    .empty {
+      margin-top: 48px;
+    }
+  }
+</style>

@@ -1,0 +1,135 @@
+---
+import { site, texts } from '../data/site';
+
+const year = new Date().getFullYear();
+
+// e-handelsloven § 7 line (tekster.yaml, firma:): only rendered once filled in.
+const { legalName, address, cvr } = site.company;
+const companyLine = [legalName.trim(), address.trim(), cvr.trim() && `CVR ${cvr.trim()}`]
+  .filter(Boolean)
+  .join(' · ');
+---
+
+<footer class="footer">
+  <div class="main">
+    <div class="contact">
+      <h2 class="label">kontakt</h2>
+      <a class="mail display" href={`mailto:${site.email}`}>{site.email}</a>
+      {texts.contactNote && <p class="note">{texts.contactNote}</p>}
+    </div>
+    <div class="where">
+      <a class="instagram" href={site.instagram.url}>{site.instagram.handle}</a>
+      <p class="city">{site.city}</p>
+    </div>
+  </div>
+  <div class="legal">
+    <p>© {year} {site.name}</p>
+    {companyLine && <p>{companyLine}</p>}
+  </div>
+</footer>
+
+<style>
+  .footer {
+    border-top: 1px solid var(--line);
+  }
+
+  .main {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 40px;
+    padding: 80px var(--margin) 56px;
+  }
+
+  .contact {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+    min-width: 0;
+  }
+
+  .label {
+    color: var(--ink-dim);
+    font-size: var(--type-micro);
+    font-weight: var(--type-micro-weight);
+    letter-spacing: var(--type-micro-ls);
+    text-transform: uppercase;
+  }
+
+  .mail {
+    max-width: 100%;
+    font-size: var(--type-mail);
+    line-height: var(--type-mail-lh);
+    letter-spacing: var(--type-mail-ls);
+    overflow-wrap: anywhere;
+  }
+
+  .note {
+    color: var(--ink-dim);
+    line-height: var(--type-body-lh);
+    text-wrap: pretty;
+  }
+
+  .where {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    padding-bottom: 8px;
+    font-size: var(--type-small);
+    letter-spacing: 0.03em;
+    text-align: right;
+  }
+
+  .city {
+    color: var(--ink-dim);
+  }
+
+  .legal {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 0 var(--margin) 36px;
+    color: var(--ink-dim);
+    font-size: var(--type-legal);
+    letter-spacing: var(--type-legal-ls);
+  }
+
+  @media (hover: hover) {
+    .mail:hover,
+    .instagram:hover {
+      color: var(--ink-dim);
+    }
+  }
+
+  /* Mobile: one left-aligned column inside a single padded block */
+  @media (max-width: 767px) {
+    .footer {
+      padding: 48px var(--margin) 32px;
+    }
+
+    .main {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 34px;
+      padding: 0;
+    }
+
+    .contact {
+      gap: 14px;
+    }
+
+    .where {
+      align-items: flex-start;
+      gap: 8px;
+      padding-bottom: 0;
+      text-align: left;
+    }
+
+    .legal {
+      margin-top: 42px;
+      padding: 0;
+    }
+  }
+</style>

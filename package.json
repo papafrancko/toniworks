@@ -1,0 +1,30 @@
+{
+  "name": "toniworks",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "brand": "node scripts/make-brand.mjs",
+    "media": "node scripts/encode-media.mjs",
+    "film:add": "node scripts/add-film.mjs",
+    "film:remove": "node scripts/remove-film.mjs"
+  },
+  "dependencies": {
+    "@fontsource-variable/archivo": "^5.3.0",
+    "@fontsource/instrument-sans": "^5.3.0",
+    "astro": "^7.3.3",
+    "yaml": "^2.9.1"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "sharp": "^0.35.4",
+    "typescript": "^6.0.3"
+  }
+}

@@ -1,0 +1,19 @@
+# build output
+dist/
+.astro/
+.vercel/
+
+# dependencies
+node_modules/
+
+# source masters and design handoff stay local (large / not production code)
+materiale/
+design-handoffs/
+
+# local tooling
+.claude/
+*.log
+.DS_Store
+Thumbs.db
+.env
+.env.*

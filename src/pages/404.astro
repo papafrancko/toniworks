@@ -1,0 +1,53 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Siden findes ikke" description="Siden findes ikke. Det gør filmene." spacer="404">
+  <div class="notfound">
+    <h1 class="code display">404</h1>
+    <p class="note">Siden findes ikke. Det gør filmene.</p>
+    <a class="back" href="/">tilbage til <span lang="en">work</span></a>
+  </div>
+</Base>
+
+<style>
+  .notfound {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 200px var(--margin) 0;
+  }
+
+  .code {
+    font-size: var(--type-404);
+    line-height: var(--type-404-lh);
+    letter-spacing: var(--type-404-ls);
+  }
+
+  .note {
+    line-height: var(--type-body-lh);
+    text-wrap: pretty;
+  }
+
+  .back {
+    align-self: flex-start;
+    color: var(--ink-dim);
+    font-size: var(--type-small);
+    letter-spacing: var(--type-label-ls-meta);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  @media (hover: hover) {
+    .back:hover {
+      color: var(--ink);
+    }
+  }
+
+  @media (max-width: 767px) {
+    .notfound {
+      gap: 14px;
+      padding-top: 96px;
+    }
+  }
+</style>

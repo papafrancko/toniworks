@@ -1,0 +1,116 @@
+# Fjern en film fra toniworks.dk uden en udvikler:
+# GitHub → fanen Actions → "Fjern film" → "Run workflow" → skriv filmens adresse.
+#
+# Fjerner filmens blok i src/content/film.yaml, dens videofiler i
+# src/assets/films/<slug>/ og dens linje i src/data/media-manifest.json
+# (scripts/remove-film.mjs), tjekker at sitet kan bygges, og gemmer på main.
+# Vil I bare skjule en film et stykke tid, så skriv "skjult: true" ved den i
+# film.yaml i stedet.
+name: Fjern film
+run-name: "Fjern film: ${{ inputs.slug }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: "Filmens adresse: det, der står efter /film/ (fx loeb for toniworks.dk/film/loeb)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+# Samme kø som "Tilføj film": én ændring ad gangen, alle ventende kørsler bliver i køen.
+concurrency:
+  group: indhold
+  cancel-in-progress: false
+  queue: max
+
+jobs:
+  fjern:
+    name: Fjern film
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Tjek at der køres fra main
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::Kør 'Fjern film' fra main: vælg 'Branch: main' under 'Run workflow'."
+          exit 1
+
+      - name: Hent sitet
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # main som den ser ud nu, ikke da kørslen blev startet: en kørsel, der har
+          # ventet i køen, bygger videre på den forrige.
+          ref: main
+          # Tokenet gemmes ikke i git: npm-pakkerne og ffmpeg kan ikke læse det.
+          # Kun "Gem på main" får det.
+          persist-credentials: false
+
+      - name: Installér Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Installér pakker
+        run: npm ci --no-audit --no-fund
+
+      - name: Fjern filmen
+        id: film
+        env:
+          SLUG: ${{ inputs.slug }}
+        run: node scripts/remove-film.mjs --slug "$SLUG" --summary-file "$RUNNER_TEMP/opsummering.md"
+
+      - name: Tjek at sitet kan bygges
+        run: |
+          npx astro check
+          npx astro build
+
+      - name: Gem på main
+        env:
+          SLUG: ${{ steps.film.outputs.slug }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # Tokenet kun til git her (checkout gemmer det ikke).
+          auth="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          git_auth() { git -c "http.$GITHUB_SERVER_URL/.extraheader=$auth" "$@"; }
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- src/content/film.yaml src/data/media-manifest.json src/assets/films
+          git commit --quiet -m "Fjern film: $SLUG"
+          if ! git_auth push --quiet origin HEAD:main; then
+            echo "main er ændret imens. Henter ændringerne og prøver igen."
+            git_auth fetch --quiet origin main
+            if ! git rebase origin/main; then
+              git rebase --abort || true
+              echo "::error::Nogen har ændret sitet samtidig, så ændringen kunne ikke gemmes. Kør 'Fjern film' igen."
+              exit 1
+            fi
+            git_auth push --quiet origin HEAD:main
+          fi
+
+      - name: Opsummering
+        run: cat "$RUNNER_TEMP/opsummering.md" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Forklar fejlen
+        if: failure() && steps.film.outcome != 'failure'
+        run: |
+          {
+            echo "## Filmen blev ikke fjernet"
+            echo
+            echo "Noget gik galt i trinnet med det røde kryds herover. Intet er ændret på sitet."
+            echo
+            echo "Prøv at køre 'Fjern film' igen. Sker det igen, så send linket til denne side til udvikleren."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Forklar afbrydelsen
+        if: cancelled()
+        run: |
+          {
+            echo "## Kørslen blev afbrudt"
+            echo
+            echo "Intet er ændret på sitet. Kør 'Fjern film' igen."
+          } >> "$GITHUB_STEP_SUMMARY"

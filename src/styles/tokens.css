@@ -1,0 +1,132 @@
+/*
+ * Design tokens. Values from the design handoff (README + mockup), with the
+ * build-brief resolutions applied.
+ *
+ * Breakpoints (media queries cannot read custom properties, so use these
+ * literals in components):
+ *   desktop  >= 1200px   default values below
+ *   tablet   768–1199px  @media (max-width: 1199px)  margin 40, gutter 32,
+ *                        desktop structure and vertical values
+ *   mobile   < 768px     @media (max-width: 767px)
+ *
+ * Type sizes interpolate linearly from the mobile value at 768px to the
+ * desktop value at 1200px with clamp(), so they need no media query:
+ *   size = mobile + (desktop - mobile) * (100vw - 768px) / 432px
+ * Each type token is a size (--type-x) plus, where the design states them,
+ * a line-height (--type-x-lh) and tracking (--type-x-ls). Anything without a
+ * stated line-height keeps line-height: normal.
+ */
+
+:root {
+  /* Colour */
+  --bg: #0a0d14;
+  --navy: #0b1f3f;
+  --ink: #ffffff;
+  --ink-dim: #9aa0ab;
+  --ink-faint: #6e747e;
+  --line: rgba(255, 255, 255, 0.1);
+  --line-strong: rgba(255, 255, 255, 0.14);
+  --track: rgba(255, 255, 255, 0.28);
+  /* Flat band behind player controls, only for films flagged controlsScrim */
+  --scrim: rgba(10, 13, 20, 0.45);
+
+  /* Font stacks. Display is always italic, 700, font-stretch 70% (.display) */
+  --font-display: 'Archivo Variable', 'Arial Narrow', Arial, sans-serif;
+  --font-text: 'Instrument Sans', Helvetica, Arial, sans-serif;
+
+  /* Type: Archivo (display) */
+  --type-404: clamp(72px, 11.1111vw - 13.3333px, 120px);
+  --type-404-lh: 0.88;
+  --type-404-ls: -0.02em;
+
+  --type-next: clamp(48px, 9.2593vw - 23.1111px, 88px);
+  --type-next-lh: 0.9;
+  --type-next-ls: -0.02em;
+
+  --type-mail: clamp(32px, 9.2593vw - 39.1111px, 72px);
+  --type-mail-lh: 0.9;
+  --type-mail-ls: -0.02em;
+
+  --type-film-page: clamp(36px, 6.4815vw - 13.7778px, 64px);
+  --type-film-page-lh: 0.95;
+  --type-film-page-ls: -0.015em;
+
+  --type-lead: clamp(28px, 2.7778vw + 6.6667px, 40px);
+  --type-lead-lh: 1.1;
+  --type-lead-ls: -0.01em;
+
+  --type-film-grid: clamp(24px, 1.3889vw + 13.3333px, 30px);
+  --type-film-grid-lh: 1;
+
+  --type-logo: clamp(20px, 1.3889vw + 9.3333px, 26px);
+  --type-logo-ls: -0.01em;
+
+  /* Type: Instrument Sans (text) */
+  --type-body: 16px;
+  --type-body-lh: 1.65;
+
+  /* Nav links; player time + sound labels (with the meta tracking) */
+  --type-label: clamp(12px, 0.2315vw + 10.2222px, 13px);
+  --type-label-ls: 0.03em; /* nav */
+  --type-label-ls-meta: 0.04em; /* meta, player labels, 404 link */
+
+  /* Fixed sizes the design keeps at every width */
+  --type-meta: 12px; /* home grid meta, with --type-label-ls-meta */
+  --type-small: 13px; /* footer Instagram/city (0.03em), 404 link (0.04em) */
+  --type-produced: 13px; /* film page credit line */
+  --type-produced-lh: 1.6;
+  --type-produced-ls: 0.02em;
+  --type-legal: 12px; /* copyright + company line */
+  --type-legal-ls: 0.03em;
+
+  --type-micro: 11px; /* 'kontakt', 'næste film': uppercase via text-transform */
+  --type-micro-ls: 0.14em;
+  --type-micro-weight: 500;
+
+  /*
+   * Logo. --logo-cap is the Wordmark height (its viewBox is cut at cap height
+   * and baseline): 0.687 x --type-logo, the cap height of the mockup's
+   * Archivo 'TONI' (17.862px desktop, 13.74px mobile). --logo-box is the line
+   * box that 'TONI' produced (line-height normal); the nav reproduces it so
+   * every vertical position below the nav matches the mockup.
+   */
+  --logo-cap: clamp(13.74px, 0.9542vw + 6.412px, 17.862px);
+  --logo-box: clamp(22px, 1.3889vw + 11.3333px, 28px);
+
+  /* Spacing */
+  --margin: 64px;
+  --gutter: 40px;
+  --gap-row: 96px;
+  --nav-pad-top: 36px;
+  /* Nav block height: 64 desktop, 44 mobile */
+  --nav-h: calc(var(--nav-pad-top) + var(--logo-box));
+
+  /* Bottom air before the footer, per page */
+  --pad-bottom: 200px; /* home, about */
+  --pad-bottom-film: 120px;
+  --pad-bottom-404: 220px;
+
+  /* Motion: the only two durations in the design */
+  --fade-preview: 450ms; /* home poster -> film crossfade */
+  --fade-ui: 200ms; /* colour changes, player controls */
+}
+
+@media (max-width: 1199px) {
+  :root {
+    --margin: 40px;
+    --gutter: 32px;
+  }
+}
+
+@media (max-width: 767px) {
+  :root {
+    --margin: 20px;
+    --gutter: 0px;
+    --gap-row: 56px;
+    --nav-pad-top: 22px;
+    --type-lead-lh: 1.12;
+    --pad-bottom: 96px;
+    --pad-bottom-film: 72px;
+    --pad-bottom-404: 120px;
+  }
+}
