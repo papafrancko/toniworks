@@ -73,9 +73,10 @@ forrige version liggende. Rollback: Deployments → ⋯ → Instant Rollback.
 
 **Plan:** Vercel Hobby. Hobby kan kun importere repos, der ejes af en personlig
 GitHub-konto, og kontoen skal være den samme, som ejer Vercel-projektet. Derfor
-ligger repoet på `papafrancko` (Tobias), som også ejer Vercel-projektet. Tobias og Nicolas er collaborators med
-skriveadgang. Repoet er offentligt, så Vercel deployer også deres commits og
-formularernes bot-commits (på Hobby gælder begrænsningen kun private repos).
+ligger repoet på `papafrancko` (Tobias), som også ejer Vercel-projektet. De
+øvrige er collaborators med skriveadgang. Repoet er offentligt, så Vercel
+deployer også deres commits og formularernes bot-commits (på Hobby gælder
+begrænsningen kun private repos).
 Vercels fair use-vilkår beskriver Hobby som ikke-kommerciel brug.
 
 **Domæne:** Domænet tilføjes i Vercel, men DNS bliver hos Simply.com.
