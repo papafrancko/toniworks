@@ -19,25 +19,20 @@
 about:
   # Den store første tekst på about-siden.
   indledning: >-
-    TONI Works er et produktionsselskab i København. Det er
-    Tobias Franck-Winther og Nicolas Kaiser.
+    TONI Works er et produktionsselskab i København.
 
   # Afsnittene under indledningen. Hvert afsnit starter med "- >-".
   # Nyt afsnit: kopiér et helt afsnit (fra "- >-" til og med sidste
   # linje tekst), sæt det ind under, og ret teksten.
   afsnit:
-    # pladsholder — afventer TONIs tekst
     - >-
-      Vi arbejder med, at en pause ofte er sjovere end en pointe. Det
-      betyder længere indstillinger, færre klip og skuespillere, der får
-      lov at stå stille lidt for længe. Det ser seriøst ud, indtil man
-      opdager, at det ikke er det.
+      Vi laver reklamefilm med lange indstillinger, få klip og en tør
+      tone. Skuespillerne får lov at stå stille lidt for længe.
 
   # Den sidste, grå linje. Fjern den ved at rette linjen til
   #   sidste_linje: ''
   # (slet >- og teksten under).
-  sidste_linje: >-
-    Vi har én kunde. Det er rigeligt indtil videre.
+  sidste_linje: ''
 
 kontakt:
   # Mailadressen nederst på hver side.
