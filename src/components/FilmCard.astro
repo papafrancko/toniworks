@@ -20,8 +20,9 @@ const sizes =
 
 // Sources carry a media condition so reduced-motion visitors never download
 // the film (the previews script reloads them if the preference changes).
-// preload="none": the previews script lets hover mode fetch the start of the
-// films in view once the page has loaded, so they don't delay fonts and posters.
+// preload="none": once the page has loaded, the previews script fetches the start
+// of the films that may play next (in view on hover, the middle film and its
+// neighbours while scrolling), so they don't delay fonts and posters.
 const motionOk = '(prefers-reduced-motion: no-preference)';
 ---
 

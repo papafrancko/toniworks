@@ -3,20 +3,25 @@
  * clip), from 0:00 and looping, over its poster (frame 0 of the film):
  *
  * - hover mode, (hover: hover) and (pointer: fine): while the pointer is on the card;
- * - in-view mode, everything else: the most visible film at >= 60 % in view,
- *   held until it drops below 30 %. Equally visible films (row-mates in a
- *   two-column grid) take turns, one whole play-through each.
+ * - in-view mode, everything else: the film the viewer has scrolled to, i.e. the
+ *   one nearest the middle of the screen among the films far enough in view. It
+ *   keeps playing while it stays the middle film, and is cut off — mid-play — as
+ *   soon as another film is clearly nearer the middle and has stayed nearest for
+ *   a moment, so flicking past a film doesn't start it. Films the same distance
+ *   from the middle (row-mates in a two-column grid) take turns, one whole
+ *   play-through each.
  *
  * One film plays at a time. The video layer fades in (CSS, --fade-preview)
  * only once a frame is presented, and fades out (sound ramped down with it)
  * before the video is paused and rewound. Keyboard focus on a card's sound
  * button previews that card. `lyd til` unmutes the playing card and makes the
- * next previews try sound as well. Reduced motion: posters only.
+ * next previews try sound as well. Reduced motion: posters only, never loaded.
  *
  * The videos ship with preload="none", so they don't compete with fonts and
  * posters while the page loads. Once it has loaded, hover mode lets the films
  * in view fetch their start (preload="metadata"), so a hover starts at once;
- * in-view mode loads a film when it plays.
+ * in-view mode does the same for the middle film and the one either side of it,
+ * so scrolling on to the next film starts it without waiting for the file.
  */
 
 const hoverQuery = matchMedia('(hover: hover) and (pointer: fine)');
@@ -24,8 +29,18 @@ const reducedQuery = matchMedia('(prefers-reduced-motion: reduce)');
 
 const START_RATIO = 0.6;
 const STOP_RATIO = 0.3;
-/** Films this close to the most visible one count as equally visible. */
-const TIE = 0.05;
+/** A film filling this much of the screen counts as in view however little of it that is. */
+const SCREEN_SHARE = 1 / 3;
+/** px nearer the middle of the screen a film must be to take the turn over. */
+const CENTRE_MARGIN = 24;
+/** ms it must stay the nearest one first, so a flick doesn't start every film it passes. */
+const SETTLE_MS = 120;
+/** px/s above which the page is still racing past the films: nothing takes over. */
+const FLING_SPEED = 1100;
+/** ms after the last scroll event at which the page counts as standing still. */
+const IDLE_MS = 120;
+/** Films either side of the middle one that fetch their start in in-view mode. */
+const WARM_REACH = 1;
 
 interface Card {
   root: HTMLElement;
@@ -36,11 +51,15 @@ interface Card {
   hovered: boolean;
   /** Keyboard focus on the sound button. */
   focused: boolean;
-  /** Visible share of the film, from the IntersectionObserver. */
+  /** Visible share of the film, measured against the screen. */
   ratio: number;
+  /** px from the middle of the film to the middle of the screen. */
+  distance: number;
+  /** In view enough for in-view mode to pick it. */
+  eligible: boolean;
   failed: boolean;
   shown: boolean;
-  /** performance.now() of the last start; 0 = never. In-view mode's turn order. */
+  /** performance.now() of the last start; 0 = never. Turn order among equally near films. */
   lastStarted: number;
   /** Bumped on every start and stop, so a stale play() or frame callback knows it was superseded. */
   run: number;
@@ -69,8 +88,18 @@ let inView: Card | null = null;
 let requested: Card | null = null;
 /** Page-wide, in memory only: set by `lyd til`, cleared by `lyd fra`. */
 let soundOn = false;
-/** The page has loaded: hover mode may fetch the start of the films in view. */
+/** The page has loaded: the films that may play next may fetch their start. */
 let loaded = false;
+/** In-view mode: the film nearest the middle of the screen, and since when. */
+let candidate: Card | null = null;
+let candidateAt = 0;
+/** Scroll position and speed (px/s) at the last scroll event. */
+let scrolledTo = scrollY;
+let scrollSpeed = 0;
+let scrollAt = 0;
+/** requestAnimationFrame and setTimeout handles of a pending re-pick. */
+let frame = 0;
+let timer = 0;
 
 function setShown(card: Card, shown: boolean) {
   card.shown = shown;
@@ -164,25 +193,97 @@ function stop(card: Card, now = false) {
   card.resetTimer = window.setTimeout(() => reset(card), fadeMs);
 }
 
+/** Where every film sits relative to the middle of the screen. */
+function measure() {
+  const height = innerHeight;
+  const middle = height / 2;
+  const scrolled = scrollY;
+  const scrollable = Math.max(0, document.documentElement.scrollHeight - height);
+  // The middle of the screen can only travel this far over the page from here, so
+  // a film the page cannot bring to it — the first one while the page is at the
+  // top, the last one at the bottom — counts as being there.
+  const highest = middle - scrolled;
+  const lowest = middle + scrollable - scrolled;
+  for (const card of cards) {
+    const box = card.media.getBoundingClientRect();
+    const visible = Math.max(0, Math.min(height, box.bottom) - Math.max(0, box.top));
+    card.ratio = box.height > 0 ? visible / box.height : 0;
+    const centre = Math.min(Math.max(box.top + box.height / 2, highest), lowest);
+    card.distance = Math.abs(centre - middle);
+    // 60 % of the film in view, or a third of the screen filled by it: a film
+    // taller than the screen (a phone held sideways) can never reach 60 % of
+    // itself, and neither can the two films either side of the titles between them.
+    card.eligible =
+      !card.failed && (card.ratio >= START_RATIO || visible >= height * SCREEN_SHARE);
+  }
+}
+
+/** The film nearest the middle of the screen; page order breaks an exact tie. */
+function nearest() {
+  let best: Card | null = null;
+  for (const card of cards) {
+    if (card.eligible && (!best || card.distance < best.distance)) best = card;
+  }
+  return best;
+}
+
+/** Among the films as near the middle as `best`: the one that has waited longest. */
+function waiting(current: Card, best: Card) {
+  let next: Card | null = null;
+  for (const card of cards) {
+    if (card === current || !card.eligible || card.distance > best.distance + CENTRE_MARGIN) continue;
+    if (!next || card.lastStarted < next.lastStarted) next = card;
+  }
+  return next;
+}
+
+/** px/s the page is scrolling right now; 0 once it has stood still for a moment. */
+function speed(now: number) {
+  return now - scrollAt > IDLE_MS ? 0 : scrollSpeed;
+}
+
+/** Re-pick after `delay`: the scroll may have stopped, so no event would do it. */
+function later(delay: number) {
+  clearTimeout(timer);
+  timer = window.setTimeout(() => update(), delay);
+}
+
 /**
- * In-view mode's pick: the most visible film at >= 60 %, held until it drops
- * below 30 % or another film is clearly more visible. Equally visible films
- * take turns: when the playing one has looped back to 0:00 (`wrapped`), the
- * one that has waited longest takes over, so a film is never cut off mid-way.
+ * In-view mode's pick: the film nearest the middle of the screen — the one the
+ * viewer has scrolled to. It keeps playing while it is still the nearest (within
+ * CENTRE_MARGIN, so a few pixels of jitter can't swap it) and at least 30 % in
+ * view. Another film takes it over once it is clearly nearer and has been for
+ * SETTLE_MS, and never while the page is still racing past (FLING_SPEED), so a
+ * flick doesn't start every film on its way. Films the same distance from the
+ * middle (row-mates in a two-column grid) take turns instead: when the playing
+ * one has looped back to 0:00 (`wrapped`), the one that has waited longest goes.
  */
 function updateInView(wrapped: Card | null = null) {
-  const ready = cards.filter((card) => !card.failed && card.ratio >= START_RATIO);
-  const top = Math.max(0, ...ready.map((card) => card.ratio));
-  const tied = ready.filter((card) => card.ratio >= top - TIE);
+  const now = performance.now();
+  const best = nearest();
   const current = inView && !inView.failed && inView.ratio >= STOP_RATIO ? inView : null;
-  const turnOver = current !== null && current === wrapped && tied.some((card) => card !== current);
-  if (current && current.ratio >= top - TIE && !turnOver) return;
-  // Longest since it last played (never played first), then page order.
-  let next: Card | null = null;
-  for (const card of tied) {
-    if (card !== current && (!next || card.lastStarted < next.lastStarted)) next = card;
+  if (current && (!best || best.distance > current.distance - CENTRE_MARGIN)) {
+    // Still the middle film: leave it playing, unless it has looped and an
+    // equally near film is waiting for its turn.
+    candidate = null;
+    inView = (best && current === wrapped ? waiting(current, best) : null) ?? current;
+    return;
   }
-  inView = next;
+  // The film that was playing has scrolled away: stop it, even mid-play.
+  if (!current) inView = null;
+  if (candidate !== best) {
+    candidate = best;
+    candidateAt = now;
+  }
+  if (!best) return;
+  const held = now - candidateAt;
+  const racing = speed(now) > FLING_SPEED;
+  if (racing || held < SETTLE_MS) {
+    // Come back when it has held still long enough, or when the page has stopped.
+    later(racing ? IDLE_MS + 20 : Math.max(SETTLE_MS - held, 20));
+    return;
+  }
+  inView = best;
 }
 
 function pick(): Card | null {
@@ -194,11 +295,34 @@ function pick(): Card | null {
   return inView;
 }
 
-/** Hover mode, once the page has loaded: the films in view fetch their start. */
+/** Once the page has loaded: the films that may play next fetch their start. */
 function warm() {
-  if (!loaded || !hoverQuery.matches) return;
-  for (const card of cards) {
-    if (card.ratio > 0 && card.video.preload === 'none') card.video.preload = 'metadata';
+  if (!loaded || reducedQuery.matches) return;
+  if (hoverQuery.matches) {
+    // Hover mode: every film in view, so a hover starts at once.
+    for (const card of cards) {
+      if (card.ratio > 0 && card.video.preload === 'none') card.video.preload = 'metadata';
+    }
+    return;
+  }
+  // In-view mode: the middle film and the one either side of it, so scrolling on
+  // starts the next film at once without pulling every film over mobile data.
+  // Not while the page is racing past them, or a flick would fetch the lot.
+  if (speed(performance.now()) > FLING_SPEED) return;
+  let middle = -1;
+  let least = Infinity;
+  for (let i = 0; i < cards.length; i++) {
+    const card = cards[i];
+    if (card.failed || card.distance >= least) continue;
+    least = card.distance;
+    middle = i;
+  }
+  if (middle < 0) return;
+  const from = Math.max(0, middle - WARM_REACH);
+  const to = Math.min(cards.length - 1, middle + WARM_REACH);
+  for (let i = from; i <= to; i++) {
+    const { video } = cards[i];
+    if (video.preload === 'none') video.preload = 'metadata';
   }
 }
 
@@ -211,11 +335,29 @@ function sync() {
   if (next) start(next);
 }
 
+/** Measure the films against the screen, re-pick, act. */
+function update(wrapped: Card | null = null) {
+  clearTimeout(timer);
+  measure();
+  if (requested && requested.ratio < STOP_RATIO) requested = null;
+  updateInView(wrapped);
+  sync();
+  warm();
+}
+
+/** At most one update per frame, however many scroll or observer events arrive. */
+function refresh() {
+  if (frame) return;
+  frame = requestAnimationFrame(() => {
+    frame = 0;
+    update();
+  });
+}
+
 function fail(card: Card) {
   card.failed = true;
   if (card.button) card.button.hidden = true;
-  updateInView();
-  sync();
+  update();
 }
 
 function label(card: Card) {
@@ -268,6 +410,8 @@ function setup(root: HTMLElement) {
     hovered: false,
     focused: false,
     ratio: 0,
+    distance: Infinity,
+    eligible: false,
     failed: false,
     shown: false,
     lastStarted: 0,
@@ -291,12 +435,11 @@ function setup(root: HTMLElement) {
     sync();
   });
 
-  // A looping film seeks back to 0:00 at its end: in in-view mode an equally
-  // visible film may take its turn now.
+  // A looping film seeks back to 0:00 at its end: in in-view mode a film the
+  // same distance from the middle of the screen may take its turn now.
   video.addEventListener('seeked', () => {
     if (card !== active || card !== inView || hoverQuery.matches || video.currentTime > 0.5) return;
-    updateInView(card);
-    sync();
+    update(card);
   });
 
   video.addEventListener('volumechange', () => label(card));
@@ -334,25 +477,35 @@ function setup(root: HTMLElement) {
 document.querySelectorAll<HTMLElement>('[data-film-card]').forEach(setup);
 
 if (cards.length > 0) {
-  const observer = new IntersectionObserver(
-    (entries) => {
-      for (const entry of entries) {
-        const card = cards.find((c) => c.media === entry.target);
-        if (card) card.ratio = entry.isIntersecting ? entry.intersectionRatio : 0;
-      }
-      if (requested && requested.ratio < STOP_RATIO) requested = null;
-      updateInView();
-      sync();
-      warm();
-    },
-    { threshold: Array.from({ length: 21 }, (_, i) => i / 20) },
-  );
+  // Scrolling picks the film in the middle of the screen; the observer catches
+  // everything else that moves the films past it — the page opening, a resize, a
+  // late layout shift — without a measurement of its own.
+  const observer = new IntersectionObserver(() => refresh(), {
+    threshold: [0, STOP_RATIO, START_RATIO, 1],
+  });
   for (const card of cards) observer.observe(card.media);
 
-  hoverQuery.addEventListener('change', () => {
-    sync();
-    warm();
-  });
+  addEventListener(
+    'scroll',
+    () => {
+      const now = performance.now();
+      const y = scrollY;
+      const since = now - scrollAt;
+      if (since > 0) {
+        const px = (Math.abs(y - scrolledTo) / since) * 1000;
+        // Rises at once and falls over a few frames, so a flick and the momentum
+        // after it read as one long gesture rather than a series of short ones.
+        scrollSpeed = since > IDLE_MS ? px : Math.max(px, scrollSpeed * 0.7);
+      }
+      scrolledTo = y;
+      scrollAt = now;
+      refresh();
+    },
+    { passive: true },
+  );
+  addEventListener('resize', () => refresh(), { passive: true });
+
+  hoverQuery.addEventListener('change', () => update());
 
   const afterLoad = () => {
     const ready = () => {
@@ -374,16 +527,16 @@ if (cards.length > 0) {
       }
       if (card.button) card.button.hidden = card.failed || reducedQuery.matches;
     }
-    updateInView();
-    sync();
+    update();
   });
 
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden && active) {
-      stop(active, true);
+    if (document.hidden) {
+      if (active) stop(active, true);
       active = null;
+      return;
     }
-    sync();
+    update();
   });
 
   // Leaving (or entering the back/forward cache): stop everything at once.
@@ -394,11 +547,13 @@ if (cards.length > 0) {
   addEventListener('pageshow', (event) => {
     if (!event.persisted) return;
     requested = null;
+    candidate = null;
+    scrolledTo = scrollY;
+    scrollSpeed = 0;
     for (const card of cards) {
       card.hovered = false;
       card.focused = card.button?.matches(':focus-visible') ?? false;
     }
-    updateInView();
-    sync();
+    update();
   });
 }
