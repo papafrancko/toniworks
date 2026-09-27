@@ -1410,6 +1410,241 @@
         },
         "recommendScrim": true
       }
+    },
+    "mix": {
+      "controlsScrim": true,
+      "master": {
+        "file": "FilmX_1_lemon_mix_final.mp4",
+        "width": 2048,
+        "height": 1340,
+        "frames": 271,
+        "durationSec": 10.84,
+        "fps": "25/1"
+      },
+      "files": {
+        "full-2048.h264.mp4": {
+          "width": 2048,
+          "height": 1340,
+          "frames": 271,
+          "durationSec": 10.84,
+          "bytes": 13364331,
+          "codecsString": "avc1.640032, mp4a.40.2",
+          "keyframes": 7,
+          "crf": 20
+        },
+        "full-2048.av1.mp4": {
+          "width": 2048,
+          "height": 1340,
+          "frames": 271,
+          "durationSec": 10.84,
+          "bytes": 7997691,
+          "codecsString": "av01.0.12M.10, mp4a.40.2",
+          "keyframes": 6,
+          "crf": 28
+        },
+        "full-1280.h264.mp4": {
+          "width": 1280,
+          "height": 838,
+          "frames": 271,
+          "durationSec": 10.84,
+          "bytes": 4141343,
+          "codecsString": "avc1.640028, mp4a.40.2",
+          "keyframes": 7,
+          "crf": 20
+        },
+        "full-1280.av1.mp4": {
+          "width": 1280,
+          "height": 838,
+          "frames": 271,
+          "durationSec": 10.84,
+          "bytes": 3127535,
+          "codecsString": "av01.0.08M.10, mp4a.40.2",
+          "keyframes": 6,
+          "crf": 28
+        },
+        "poster.jpg": {
+          "width": 2048,
+          "height": 1340,
+          "bytes": 165983,
+          "pixFmt": "yuvj444p",
+          "madVsFrame0": [
+            0.977,
+            0.853,
+            1.032
+          ],
+          "source": "full-2048.h264.mp4 frame 0"
+        }
+      },
+      "controls": {
+        "sampledFrames": 55,
+        "everyNthFrame": 5,
+        "rule": "scrim if any text box has p75 background contrast < 4.5:1, or any glyph box < 3:1, for > 0.5 s",
+        "regions": {
+          "desktop-time": {
+            "requiredContrast": 4.5,
+            "mean": {
+              "minContrast": 1.89,
+              "worstAtSec": 2.8,
+              "secondsBelowAA": 8.2
+            },
+            "p75": {
+              "minContrast": 1.65,
+              "worstAtSec": 2.8,
+              "secondsBelowAA": 8.2
+            },
+            "p90": {
+              "minContrast": 1.55,
+              "worstAtSec": 3.8,
+              "secondsBelowAA": 8.2
+            }
+          },
+          "desktop-sound": {
+            "requiredContrast": 4.5,
+            "mean": {
+              "minContrast": 7.96,
+              "worstAtSec": 3.8,
+              "secondsBelowAA": 0
+            },
+            "p75": {
+              "minContrast": 7.44,
+              "worstAtSec": 3.8,
+              "secondsBelowAA": 0
+            },
+            "p90": {
+              "minContrast": 6.95,
+              "worstAtSec": 3.8,
+              "secondsBelowAA": 0
+            }
+          },
+          "mobile-time": {
+            "requiredContrast": 4.5,
+            "mean": {
+              "minContrast": 1.95,
+              "worstAtSec": 3.2,
+              "secondsBelowAA": 8.2
+            },
+            "p75": {
+              "minContrast": 1.74,
+              "worstAtSec": 1.4,
+              "secondsBelowAA": 8.2
+            },
+            "p90": {
+              "minContrast": 1.55,
+              "worstAtSec": 3.2,
+              "secondsBelowAA": 8.2
+            }
+          },
+          "mobile-sound": {
+            "requiredContrast": 4.5,
+            "mean": {
+              "minContrast": 7.12,
+              "worstAtSec": 3.8,
+              "secondsBelowAA": 0
+            },
+            "p75": {
+              "minContrast": 6.35,
+              "worstAtSec": 3.8,
+              "secondsBelowAA": 0
+            },
+            "p90": {
+              "minContrast": 5.82,
+              "worstAtSec": 3.8,
+              "secondsBelowAA": 0
+            }
+          },
+          "desktop-glyph": {
+            "requiredContrast": 3,
+            "mean": {
+              "minContrast": 2.19,
+              "worstAtSec": 2.8,
+              "secondsBelowAA": 8.2
+            },
+            "p75": {
+              "minContrast": 1.79,
+              "worstAtSec": 3.6,
+              "secondsBelowAA": 8.2
+            },
+            "p90": {
+              "minContrast": 1.62,
+              "worstAtSec": 3.4,
+              "secondsBelowAA": 8.2
+            }
+          },
+          "tablet-glyph": {
+            "requiredContrast": 3,
+            "mean": {
+              "minContrast": 2.21,
+              "worstAtSec": 2.8,
+              "secondsBelowAA": 8.2
+            },
+            "p75": {
+              "minContrast": 1.9,
+              "worstAtSec": 2.8,
+              "secondsBelowAA": 8.2
+            },
+            "p90": {
+              "minContrast": 1.74,
+              "worstAtSec": 3.2,
+              "secondsBelowAA": 8.2
+            }
+          },
+          "mobile-glyph": {
+            "requiredContrast": 3,
+            "mean": {
+              "minContrast": 1.83,
+              "worstAtSec": 1.4,
+              "secondsBelowAA": 8.2
+            },
+            "p75": {
+              "minContrast": 1.59,
+              "worstAtSec": 2.8,
+              "secondsBelowAA": 8.2
+            },
+            "p90": {
+              "minContrast": 1.47,
+              "worstAtSec": 2.2,
+              "secondsBelowAA": 8.2
+            }
+          },
+          "strip-left": {
+            "requiredContrast": 4.5,
+            "mean": {
+              "minContrast": 2.08,
+              "worstAtSec": 3.2,
+              "secondsBelowAA": 8.2
+            },
+            "p75": {
+              "minContrast": 1.78,
+              "worstAtSec": 3.8,
+              "secondsBelowAA": 8.2
+            },
+            "p90": {
+              "minContrast": 1.66,
+              "worstAtSec": 2.4,
+              "secondsBelowAA": 8.2
+            }
+          },
+          "strip-right": {
+            "requiredContrast": 4.5,
+            "mean": {
+              "minContrast": 8.35,
+              "worstAtSec": 4,
+              "secondsBelowAA": 0
+            },
+            "p75": {
+              "minContrast": 7.8,
+              "worstAtSec": 4,
+              "secondsBelowAA": 0
+            },
+            "p90": {
+              "minContrast": 7.15,
+              "worstAtSec": 4,
+              "secondsBelowAA": 0
+            }
+          }
+        },
+        "recommendScrim": true
+      }
     }
   }
 }

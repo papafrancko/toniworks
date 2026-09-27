@@ -69,3 +69,7 @@
 - slug: travel-essentials # adressen: toniworks.dk/film/travel-essentials
   titel: travel essentials
   kunde: SALTY
+
+- slug: mix               # adressen: toniworks.dk/film/mix
+  titel: mix
+  kunde: SALTY
