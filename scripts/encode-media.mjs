@@ -21,7 +21,7 @@
  *
  * Usage:  npm run media                  encode missing files, verify all
  *         npm run media -- --force       re-encode everything
- *         npm run media -- --only=loeb,slik
+ *         npm run media -- --only=sub-2h-marathon,slik
  *         npm run media -- --only=<slug> --source=<master>   any film, any master
  *         npm run media -- --selftest    check that ffmpeg has what the pipeline needs
  *
@@ -50,12 +50,12 @@ const MANIFEST = path.join(ROOT, 'src', 'data', 'media-manifest.json');
 
 /** The launch films and their masters in materiale/opslag/. */
 const FILMS = [
-  { slug: 'loeb', master: 'Film1_løb_final_opslag.mp4' },
+  { slug: 'sub-2h-marathon', master: 'Film1_løb_final_opslag.mp4' },
   { slug: 'sauna', master: 'Film2_sauna_final_opslag.mp4' },
-  { slug: 'morgen', master: 'Film3_alene_final_opslag.mp4' },
+  { slug: 'shake-it', master: 'Film3_alene_final_opslag.mp4' },
   { slug: 'slik', master: 'Film4_slik_final_opslag.mp4' },
-  { slug: 'vaagne', master: 'Film5_vågne_final_opslag.mp4' },
-  { slug: 'pakke', master: 'Film6_pakke_final_opslag.mp4' },
+  { slug: 'god-morgen', master: 'Film5_vågne_final_opslag.mp4' },
+  { slug: 'travel-essentials', master: 'Film6_pakke_final_opslag.mp4' },
 ];
 
 // MEDIA_BUDGET_MB exists to exercise the retry path in tests; the site's budget is 25.
@@ -72,7 +72,7 @@ const BUDGET_BYTES = Number(process.env.MEDIA_BUDGET_MB || 25) * 1024 * 1024;
  *  - When a big step lands far under budget (< 80 %), one more attempt tries
  *    the CRF interpolated between the last miss and the fit, so a film
  *    doesn't lose more quality than it has to.
- * For vaagne (30 s of grain), 2048 H.264 CRF 20 gave 35.7 MB; it is kept at
+ * For god-morgen (30 s of grain), 2048 H.264 CRF 20 gave 35.7 MB; it is kept at
  * CRF 22 (20.9 MB) from before this rule, which would now give CRF 20 capped
  * at ~6.1 Mbit/s instead.
  */

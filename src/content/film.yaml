@@ -46,26 +46,26 @@
 #  at være online, til fejlen er rettet.
 # ------------------------------------------------------------------
 
-- slug: loeb      # adressen: toniworks.dk/film/loeb
-  titel: løb
+- slug: sub-2h-marathon   # adressen: toniworks.dk/film/sub-2h-marathon
+  titel: sub 2h marathon
   kunde: SALTY
 
 - slug: sauna     # adressen: toniworks.dk/film/sauna
   titel: sauna
   kunde: SALTY
 
-- slug: morgen    # adressen: toniworks.dk/film/morgen
-  titel: morgen
+- slug: shake-it          # adressen: toniworks.dk/film/shake-it
+  titel: shake it
   kunde: SALTY
 
 - slug: slik      # adressen: toniworks.dk/film/slik
   titel: slik
   kunde: SALTY
 
-- slug: vaagne    # adressen: toniworks.dk/film/vaagne
-  titel: vågne
+- slug: god-morgen        # adressen: toniworks.dk/film/god-morgen
+  titel: god morgen
   kunde: SALTY
 
-- slug: pakke     # adressen: toniworks.dk/film/pakke
-  titel: pakke
+- slug: travel-essentials # adressen: toniworks.dk/film/travel-essentials
+  titel: travel essentials
   kunde: SALTY
