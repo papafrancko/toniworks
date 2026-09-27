@@ -114,7 +114,7 @@ const values = {
   lead: required(about, 'indledning'),
   paragraphs: list(about, 'afsnit'),
   closing: optional(about, 'sidste_linje'),
-  producedBy: required(film, 'produceret_af'),
+  producedBy: optional(film, 'produceret_af'),
   legalName: optional(firma, 'navn'),
   address: optional(firma, 'adresse'),
 };
@@ -127,7 +127,7 @@ export const site = {
   email,
   instagram: { handle: `@${instagram}`, url: `https://www.instagram.com/${instagram}/` },
   city: values.city,
-  /** "Tobias Franck-Winther og Nicolas Kaiser": film credit line, About description, photo alt. */
+  /** Names for the film credit line and the About photo alt; '' = credit line ends after the client. */
   founders: values.producedBy,
   /**
    * Company details required by e-handelsloven § 7 (name, address, CVR).

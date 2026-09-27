@@ -41,14 +41,14 @@ kontakt:
   tekst: >-
     Skriv til os. Vi svarer, når kameraet er pakket ned.
   # Navnet på Instagram, uden @. Linket laves automatisk.
-  instagram: toni__works
+  instagram: toni___works
   # Byen nederst på siden. Står også i sidens beskrivelse til Google.
   by: København
 
 film:
-  # Navnene i linjen under hver film: "Produceret for SALTY af ...".
-  # Står også i beskrivelsen af about-siden til Google.
-  produceret_af: Tobias Franck-Winther og Nicolas Kaiser
+  # Navne i linjen under hver film: "Produceret for SALTY af ...".
+  # Står der '', slutter linjen efter kundens navn.
+  produceret_af: ''
 
 # Firmaoplysninger (e-handelsloven § 7). De vises nederst under ©,
 # når de er udfyldt. Lad dem stå som '' indtil da.

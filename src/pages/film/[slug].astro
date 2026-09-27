@@ -31,7 +31,7 @@ const description = `${film.title}. ${film.durationSeconds} sekunder for ${film.
       <h1 class="title display">{film.title}</h1>
       <p class="meta">{filmMeta(film)}</p>
     </div>
-    <p class="credit">Produceret for {film.client} af {site.founders}</p>
+    <p class="credit">Produceret for {film.client}{site.founders && ` af ${site.founders}`}</p>
   </div>
 
   {

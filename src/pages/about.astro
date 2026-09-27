@@ -35,7 +35,7 @@ const photo = Object.values(photos)[0]?.default;
         <Image
           class="photo"
           src={photo}
-          alt={site.founders}
+          alt={site.founders || site.name}
           widths={[390, 640, 960, 1280]}
           sizes="(max-width: 767px) calc(100vw - 40px), calc(50vw - 84px)"
         />
