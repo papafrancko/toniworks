@@ -22,7 +22,7 @@ const photos = import.meta.glob<{ default: ImageMetadata }>(
 const photo = Object.values(photos)[0]?.default;
 ---
 
-<Base title="about" description={description} activeNav="about" spacer="about">
+<Base title="contact" description={description} activeNav="about" spacer="about">
   <div class:list={['about', { 'has-photo': !!photo }]}>
     {/* Copy from src/content/tekster.yaml (about:). The first afsnit is placeholder copy: "pladsholder — afventer TONIs tekst" */}
     <div class="text">
