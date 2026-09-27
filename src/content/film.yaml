@@ -73,3 +73,7 @@
 - slug: mix               # adressen: toniworks.dk/film/mix
   titel: mix
   kunde: SALTY
+
+- slug: mix-2             # adressen: toniworks.dk/film/mix-2
+  titel: mix 2
+  kunde: SALTY
