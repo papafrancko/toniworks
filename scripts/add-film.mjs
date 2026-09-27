@@ -123,7 +123,11 @@ export function resolveLink(input, { allowLocal = !ON_GITHUB } = {}) {
   if (is('dropboxusercontent.com')) return { kind: 'dropbox', url: url.href };
   if (is('dropbox.com')) {
     const p = url.pathname;
-    if (/^\/(sh|scl\/fo)\//.test(p)) throw new Stop(MSG.dropboxFolder);
+    // A folder link is fine when it points at one file inside the folder
+    // (".../scl/fo/<id>/<path>/film.mp4"); Dropbox then serves that file.
+    if (/^\/(sh|scl\/fo)\//.test(p) && !/\/[^/]+\.(mp4|mov|m4v|mkv|webm|avi|mxf)$/i.test(p)) {
+      throw new Stop(MSG.dropboxFolder);
+    }
     if (/^\/(t|transfer)\//.test(p)) throw new Stop(MSG.dropboxTransfer);
     if (/^\/(home|preview|work)(\/|$)/.test(p)) throw new Stop(MSG.dropboxPrivate);
     url.hostname = 'www.dropbox.com';
