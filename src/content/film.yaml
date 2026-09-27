@@ -46,6 +46,14 @@
 #  at være online, til fejlen er rettet.
 # ------------------------------------------------------------------
 
+- slug: shake-it          # adressen: toniworks.dk/film/shake-it
+  titel: shake it
+  kunde: SALTY
+
+- slug: god-morgen        # adressen: toniworks.dk/film/god-morgen
+  titel: god morgen
+  kunde: SALTY
+
 - slug: sub-2h-marathon   # adressen: toniworks.dk/film/sub-2h-marathon
   titel: sub 2h marathon
   kunde: SALTY
@@ -54,16 +62,8 @@
   titel: sauna
   kunde: SALTY
 
-- slug: shake-it          # adressen: toniworks.dk/film/shake-it
-  titel: shake it
-  kunde: SALTY
-
 - slug: slik      # adressen: toniworks.dk/film/slik
   titel: slik
-  kunde: SALTY
-
-- slug: god-morgen        # adressen: toniworks.dk/film/god-morgen
-  titel: god morgen
   kunde: SALTY
 
 - slug: travel-essentials # adressen: toniworks.dk/film/travel-essentials
