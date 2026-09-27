@@ -3,7 +3,7 @@
 For Tobias og Nicolas. Alt, hvad I skal bruge, er GitHubs hjemmeside.
 
 **Sådan virker det:** Hele sitet ligger som filer i projektet
-[christianolin/toniworks](https://github.com/christianolin/toniworks)
+[papafrancko/toniworks](https://github.com/papafrancko/toniworks)
 på GitHub. Når I gemmer en ændring dér, laver Vercel (tjenesten, der viser
 sitet på nettet) automatisk en ny version af toniworks.dk. Det tager ca. 2
 minutter. Er der en fejl i ændringen, bliver den gamle version liggende online,
@@ -40,7 +40,7 @@ GitHub og Vercel er på engelsk, så knapperne står her med deres engelske navn
 1. Læg masterfilen i Dropbox.
 2. Klik på **Del** ud for filen i Dropbox, og klik **Kopiér link**. Linket skal
    pege på selve filen (ikke mappen) og være delt med "Alle med linket".
-3. Gå til [github.com/christianolin/toniworks](https://github.com/christianolin/toniworks), og log ind.
+3. Gå til [github.com/papafrancko/toniworks](https://github.com/papafrancko/toniworks), og log ind.
 4. Klik på fanen **Actions** øverst.
 5. Klik på **Tilføj film** i listen til venstre.
 6. Klik på knappen **Run workflow** til højre. Der folder sig en lille formular ud.
@@ -88,7 +88,7 @@ Rækkefølgen i filen er rækkefølgen på forsiden og i "næste film":
 `slug` er filmens adresse. Linjer, der starter med `#`, er forklaringer og vises
 ikke på sitet.
 
-1. Åbn [src/content/film.yaml](https://github.com/christianolin/toniworks/blob/main/src/content/film.yaml) på GitHub.
+1. Åbn [src/content/film.yaml](https://github.com/papafrancko/toniworks/blob/main/src/content/film.yaml) på GitHub.
 2. Klik på **blyanten** ("Edit this file") øverst til højre over filen.
 3. Ret det, I vil:
    - **Rækkefølge:** Flyt hele blokken (alle dens linjer, også `skjult: true`, hvis
@@ -132,7 +132,7 @@ formular i stedet.
 ## Sådan retter I tekster
 
 Teksterne står i
-[src/content/tekster.yaml](https://github.com/christianolin/toniworks/blob/main/src/content/tekster.yaml).
+[src/content/tekster.yaml](https://github.com/papafrancko/toniworks/blob/main/src/content/tekster.yaml).
 I retter og gemmer ligesom i `film.yaml` (blyanten → ret → **Commit changes**).
 
 | Felt | Hvad det er |

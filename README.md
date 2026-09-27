@@ -12,7 +12,7 @@ Nicolas Kaiser): en forside med filmene, en side pr. film, About og 404.
 - Ingen backend, database, cookies, analytics eller tredjepartsrequests. Fonte er
   self-hosted via Fontsource. Indholdet ligger i git og bliver læst ved build.
   Der er derfor ikke brug for fx Supabase.
-- Hostet på Vercel fra GitHub-repoet `christianolin/toniworks`, branch `main`.
+- Hostet på Vercel fra GitHub-repoet `papafrancko/toniworks`, branch `main`.
 - Film kodes med ffmpeg (libx264, libsvtav1, aac) og ligger i git under
   `src/assets/films/`.
 
@@ -73,7 +73,7 @@ forrige version liggende. Rollback: Deployments → ⋯ → Instant Rollback.
 
 **Plan:** Vercel Hobby. Hobby kan kun importere repos, der ejes af en personlig
 GitHub-konto, og kontoen skal være den samme, som ejer Vercel-projektet. Derfor
-ligger repoet på `christianolin`. Tobias og Nicolas er collaborators med
+ligger repoet på `papafrancko` (Tobias), som også ejer Vercel-projektet. Tobias og Nicolas er collaborators med
 skriveadgang. Repoet er offentligt, så Vercel deployer også deres commits og
 formularernes bot-commits (på Hobby gælder begrænsningen kun private repos).
 Vercels fair use-vilkår beskriver Hobby som ikke-kommerciel brug.
