@@ -8,7 +8,7 @@ const description = `Reklamefilm fra ${site.name}, et produktionsselskab i ${sit
 ---
 
 <Base description={description} activeNav="work" spacer="home">
-  <h1 class="visually-hidden">{site.name} — film</h1>
+  <h1 class="heading" lang="en">work portfolio</h1>
   {
     films.length > 0 ? (
       <div class="grid">
@@ -23,6 +23,22 @@ const description = `Reklamefilm fra ${site.name}, et produktionsselskab i ${sit
 </Base>
 
 <style>
+  /* Same small caps label as 'kontakt' and 'næste film' */
+  .heading {
+    margin: 96px 0 0;
+    padding: 0 var(--margin);
+    color: var(--ink-dim);
+    font-size: var(--type-micro);
+    font-weight: var(--type-micro-weight);
+    letter-spacing: var(--type-micro-ls);
+    text-transform: uppercase;
+  }
+
+  /* The label takes over the grid's top air */
+  .heading + .grid {
+    margin-top: 28px;
+  }
+
   /* An odd count simply leaves the last cell empty */
   .grid {
     display: grid;
@@ -42,6 +58,14 @@ const description = `Reklamefilm fra ${site.name}, et produktionsselskab i ${sit
   }
 
   @media (max-width: 767px) {
+    .heading {
+      margin-top: 48px;
+    }
+
+    .heading + .grid {
+      margin-top: 20px;
+    }
+
     .grid {
       grid-template-columns: minmax(0, 1fr);
       margin-top: 48px;
