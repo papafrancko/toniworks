@@ -4,7 +4,13 @@ import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import { site, texts } from '../data/site';
 
-const description = `${site.name} er ${site.founders}. Et produktionsselskab i ${site.city} med én kunde indtil videre.`;
+// Follows tekster.yaml, so editing the page copy also updates the description
+// shown in search results and link previews.
+const about = [texts.about.lead, ...texts.about.paragraphs].join(' ');
+// Whole sentences only, up to the ~160 characters search engines show.
+const description = about.length <= 160
+  ? about
+  : about.slice(0, about.lastIndexOf('.', 160) + 1) || about.slice(0, 157).trimEnd() + '…';
 
 // Optional team photo (3:2). None has been delivered: drop one image into
 // src/assets/about/ and the page switches to the two-column layout. Without
